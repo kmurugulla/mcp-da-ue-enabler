@@ -225,3 +225,4 @@ You now have a fully functional MCP server for Universal Editor enablement!
 
 Ready to enable Universal Editor in your AEM projects! 🚀
 
+

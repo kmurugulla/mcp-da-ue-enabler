@@ -59,11 +59,33 @@ export function generateBlockDefinitions(blockName, analysis) {
 }
 
 /**
+ * Infer field type from config key name
+ */
+function inferFieldTypeFromKey(key) {
+  const lowerKey = key.toLowerCase();
+  if (lowerKey.includes('image') || lowerKey.includes('picture') || lowerKey.includes('foreground') || lowerKey.includes('background')) {
+    return 'reference';
+  }
+  if (lowerKey.includes('show') || lowerKey.includes('is') || lowerKey.includes('has') || lowerKey === 'gradient') {
+    return 'boolean';
+  }
+  return 'text';
+}
+/**
+ * Generate label from config key
+ */
+function labelFromKey(key) {
+  return key
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+/**
  * Generate block models (fields)
  */
 export function generateBlockModels(blockName, analysis, options = {}) {
   const models = [];
-  const { expectedStructure, isContainer } = analysis;
+  const { expectedStructure, isContainer, usesReadBlockConfig, configKeys } = analysis;
   const { customFields = [] } = options;
   
   // Determine which model ID to use
@@ -71,26 +93,43 @@ export function generateBlockModels(blockName, analysis, options = {}) {
   
   const fields = [];
   
-  // Generate fields based on column count
-  for (let i = 0; i < expectedStructure.columns; i++) {
-    const selector = generateChildSelector(i);
-    const fieldLabel = customFields[i]?.label || generateFieldLabel(selector, { index: i });
-    const fieldType = customFields[i]?.type || UE_FIELD_TYPES.RICHTEXT;
-    
-    const field = {
-      component: fieldType,
-      name: selector,
-      value: '',
-      label: fieldLabel,
-      valueType: VALUE_TYPES.STRING,
-    };
-    
-    // Add required flag for first field
-    if (i === 0) {
-      field.required = true;
+  // If block uses readBlockConfig, generate fields from config keys
+  if (usesReadBlockConfig && configKeys && configKeys.length > 0) {
+    configKeys.forEach((key) => {
+      const fieldType = inferFieldTypeFromKey(key);
+      const field = {
+        component: fieldType,
+        valueType: VALUE_TYPES.STRING,
+        name: key,
+        label: labelFromKey(key),
+      };
+      if (fieldType === 'reference') {
+        field.multi = false;
+      }
+      fields.push(field);
+    });
+  } else {
+    // Generate fields based on column count
+    for (let i = 0; i < expectedStructure.columns; i++) {
+      const selector = generateChildSelector(i);
+      const fieldLabel = customFields[i]?.label || generateFieldLabel(selector, { index: i });
+      const fieldType = customFields[i]?.type || UE_FIELD_TYPES.RICHTEXT;
+      
+      const field = {
+        component: fieldType,
+        name: selector,
+        value: '',
+        label: fieldLabel,
+        valueType: VALUE_TYPES.STRING,
+      };
+      
+      // Add required flag for first field
+      if (i === 0) {
+        field.required = true;
+      }
+      
+      fields.push(field);
     }
-    
-    fields.push(field);
   }
   
   models.push({
@@ -378,4 +417,5 @@ export default {
   generateComponentModelsTemplate,
   generateComponentFiltersTemplate,
 };
+
 

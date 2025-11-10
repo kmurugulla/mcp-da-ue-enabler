@@ -55,23 +55,31 @@ export const generateBlockJsonTool = {
         },
         required: ['org', 'repo'],
       },
+      localBlocksPath: {
+        type: 'string',
+        description: 'Custom path to local blocks directory. Omit to use ./blocks',
+      },
+      useLocal: {
+        type: 'boolean',
+        description: 'Explicitly use local file system. Omit to auto-detect.',
+      },
     },
     required: ['blockName', 'projectPath'],
   },
   
   handler: async (args) => {
     try {
-      const { blockName, projectPath, outputPath, preview = false, customFields, github } = args;
+      const { blockName, projectPath, outputPath, preview = false, customFields, github, localBlocksPath, useLocal } = args;
       
       // Find the block
       let blocks;
       let blockInfo;
       
-      if (github) {
+      if (github && !useLocal) {
         blocks = await listBlocksFromGitHub(github);
         blockInfo = blocks.find(b => b.name === blockName);
       } else {
-        const blocksPath = path.join(projectPath, 'blocks');
+        const blocksPath = localBlocksPath || path.join(projectPath, 'blocks');
         if (!(await directoryExists(blocksPath))) {
           return {
             content: [
@@ -176,4 +184,5 @@ export const generateBlockJsonTool = {
 };
 
 export default generateBlockJsonTool;
+
 

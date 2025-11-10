@@ -117,6 +117,46 @@ export async function getBlockCode(blockInfo, options = {}) {
 }
 
 /**
+ * Extract config keys from blocks using readBlockConfig
+ */
+export function extractConfigKeys(blockCode) {
+  const configKeys = new Set();
+  const patterns = [
+    /config\['([^']+)'\]/g,
+    /config\["([^"]+)"\]/g,
+    /config\.([a-zA-Z][a-zA-Z0-9_-]*)/g,
+    /blockConfig\['([^']+)'\]/g,
+    /blockConfig\["([^"]+)"\]/g,
+    /blockConfig\.([a-zA-Z][a-zA-Z0-9_-]*)/g,
+  ];
+  patterns.forEach((pattern) => {
+    let match;
+    while ((match = pattern.exec(blockCode)) !== null) {
+      const key = match[1];
+      if (key && !key.includes('(') && !key.includes(')') && !key.includes('readBlockConfig')) {
+        configKeys.add(key);
+      }
+    }
+  });
+  const processBlockConfigPattern = /toClassName\(cols\[0\]\.textContent\)/g;
+  if (processBlockConfigPattern.test(blockCode)) {
+    const namePatterns = [
+      /name === '([^']+)'/g,
+      /name === "([^"]+)"/g,
+      /name\.trim\(\) === '([^']+)'/g,
+      /name !== '([^']+)'/g,
+      /name !== "([^"]+)"/g,
+    ];
+    namePatterns.forEach((pattern) => {
+      let match;
+      while ((match = pattern.exec(blockCode)) !== null) {
+        configKeys.add(match[1]);
+      }
+    });
+  }
+  return Array.from(configKeys).sort();
+}
+/**
  * Analyze block structure from JavaScript code
  */
 export async function analyzeBlockStructure(blockCode) {
@@ -133,6 +173,8 @@ export async function analyzeBlockStructure(blockCode) {
     complexity: 'SIMPLE',
     hasAsync: false,
     hasVariants: false,
+    usesReadBlockConfig: false,
+    configKeys: [],
   };
   
   try {
@@ -141,6 +183,16 @@ export async function analyzeBlockStructure(blockCode) {
       ecmaVersion: 2022,
       sourceType: 'module',
     });
+    
+    // Detect readBlockConfig usage
+    const readBlockConfigPattern = /readBlockConfig\s*\(/;
+    if (readBlockConfigPattern.test(blockCode)) {
+      analysis.usesReadBlockConfig = true;
+      analysis.expectedStructure.type = 'config-table';
+      analysis.configKeys = extractConfigKeys(blockCode);
+      analysis.expectedStructure.rows = 'multiple';
+      analysis.expectedStructure.columns = 2;
+    }
     
     // Detect children access patterns
     const childIndices = new Set();
@@ -154,12 +206,12 @@ export async function analyzeBlockStructure(blockCode) {
       });
     }
     
-    if (childIndices.size > 0) {
+    if (childIndices.size > 0 && !analysis.usesReadBlockConfig) {
       analysis.expectedStructure.columns = Math.max(...childIndices) + 1;
     }
     
     // Detect spread operator on children
-    if (blockCode.includes('[...block.children]')) {
+    if (blockCode.includes('[...block.children]') && !analysis.usesReadBlockConfig) {
       analysis.expectedStructure.type = 'table';
       analysis.childrenAccessPatterns.push({ type: 'spread' });
       
@@ -278,4 +330,5 @@ export default {
   detectDomMutations,
   suggestInitialStructure,
 };
+
 
