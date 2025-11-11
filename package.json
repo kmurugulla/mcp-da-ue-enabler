@@ -1,6 +1,6 @@
 {
   "name": "mcp-aem-ue-enabler",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "MCP server for enabling Universal Editor in AEM Edge Delivery projects",
   "type": "module",
   "main": "src/index.js",

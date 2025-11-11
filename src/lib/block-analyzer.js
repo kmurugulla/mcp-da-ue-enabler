@@ -146,6 +146,10 @@ export function extractConfigKeys(blockCode) {
       /name\.trim\(\) === '([^']+)'/g,
       /name !== '([^']+)'/g,
       /name !== "([^"]+)"/g,
+      /if \(name === '([^']+)'\)/g,
+      /if \(name === "([^"]+)"\)/g,
+      /else if \(name === '([^']+)'\)/g,
+      /else if \(name === "([^"]+)"\)/g,
     ];
     namePatterns.forEach((pattern) => {
       let match;
@@ -153,6 +157,25 @@ export function extractConfigKeys(blockCode) {
         configKeys.add(match[1]);
       }
     });
+    const classAddPattern = /col\.classList\.add\(name\)/;
+    if (classAddPattern.test(blockCode)) {
+      const stringLiteralPattern = /'([a-z][a-z0-9-]+)'/gi;
+      const stringLiteralPattern2 = /"([a-z][a-z0-9-]+)"/gi;
+      const allMatches = new Set();
+      let match;
+      while ((match = stringLiteralPattern.exec(blockCode)) !== null) {
+        allMatches.add(match[1]);
+      }
+      while ((match = stringLiteralPattern2.exec(blockCode)) !== null) {
+        allMatches.add(match[1]);
+      }
+      const commonWords = ['true', 'false', 'null', 'undefined', 'text', 'type', 'class', 'style', 'block', 'div', 'span', 'img', 'src', 'alt', 'href', 'name', 'value', 'content', 'data', 'click', 'load', 'error'];
+      allMatches.forEach((word) => {
+        if (word.includes('-') && !commonWords.includes(word)) {
+          configKeys.add(word);
+        }
+      });
+    }
   }
   return Array.from(configKeys).sort();
 }

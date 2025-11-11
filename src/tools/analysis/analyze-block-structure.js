@@ -69,7 +69,9 @@ export const analyzeBlockStructureTool = {
           };
         }
       } else {
-        const blocksPath = localBlocksPath || path.join(projectPath, 'blocks');
+        const blocksPath = localBlocksPath 
+          ? path.join(projectPath, localBlocksPath) 
+          : path.join(projectPath, 'blocks');
         if (!(await directoryExists(blocksPath))) {
           return {
             content: [

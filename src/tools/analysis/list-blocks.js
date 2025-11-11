@@ -48,7 +48,9 @@ export const listBlocks = {
         blocks = await listBlocksFromGitHub(github);
         source = `GitHub: ${github.org}/${github.repo}`;
       } else {
-        const blocksPath = localBlocksPath || path.join(projectPath, 'blocks');
+        const blocksPath = localBlocksPath 
+          ? path.join(projectPath, localBlocksPath) 
+          : path.join(projectPath, 'blocks');
         
         // Check if blocks directory exists
         if (!(await directoryExists(blocksPath))) {
