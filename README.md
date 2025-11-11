@@ -1,4 +1,4 @@
-# AEM UE Enabler MCP Server
+# Generate UE Configurations for DA Projects
 
 An MCP (Model Context Protocol) server for enabling and managing Universal Editor in AEM Edge Delivery projects. This server automates the complex process of instrumenting blocks for Universal Editor, analyzing code structure, and generating configurations.
 
