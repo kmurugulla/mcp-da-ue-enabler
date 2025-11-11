@@ -15,7 +15,7 @@ An MCP (Model Context Protocol) server for enabling and managing Universal Edito
   "da-ue-enabler": {
     "command": "npx",
     "args": [
-      "mcp-da-ue-enabler"
+      "https://github.com/kmurugulla/mcp-da-ue-enabler"
     ]
   }
 }
@@ -51,7 +51,7 @@ Required only if you want to analyze blocks from GitHub repositories or private 
   "da-ue-enabler": {
     "command": "npx",
     "args": [
-      "mcp-da-ue-enabler"
+      "https://github.com/kmurugulla/mcp-da-ue-enabler"
     ],
     "env": {
       "GITHUB_TOKEN": "ghp_your_token_here"
