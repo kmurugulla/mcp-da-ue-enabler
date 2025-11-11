@@ -215,6 +215,8 @@ export async function analyzeBlockStructure(blockCode) {
       analysis.configKeys = extractConfigKeys(blockCode);
       analysis.expectedStructure.rows = 'multiple';
       analysis.expectedStructure.columns = 2;
+      // readBlockConfig blocks are NEVER containers (forEach processes config rows, not content items)
+      analysis.isContainer = false;
     }
     
     // Detect children access patterns
@@ -233,12 +235,12 @@ export async function analyzeBlockStructure(blockCode) {
       analysis.expectedStructure.columns = Math.max(...childIndices) + 1;
     }
     
-    // Detect spread operator on children
+    // Detect spread operator on children (only check if NOT using readBlockConfig)
     if (blockCode.includes('[...block.children]') && !analysis.usesReadBlockConfig) {
       analysis.expectedStructure.type = 'table';
       analysis.childrenAccessPatterns.push({ type: 'spread' });
       
-      // If forEach is present, likely multiple rows
+      // If forEach is present with spread children, it's a container with multiple content rows
       if (blockCode.includes('.forEach')) {
         analysis.expectedStructure.rows = 'multiple';
         analysis.isContainer = true;
@@ -255,10 +257,15 @@ export async function analyzeBlockStructure(blockCode) {
       }
     }
     
-    // Detect container patterns
-    for (const { pattern, isContainer } of CONTAINER_PATTERNS) {
-      if (pattern.test(blockCode)) {
-        analysis.isContainer = isContainer;
+    // Detect container patterns (only if not already determined)
+    // Skip if: already identified as container, OR uses readBlockConfig
+    if (!analysis.isContainer && !analysis.usesReadBlockConfig) {
+      for (const { pattern, isContainer, confidence } of CONTAINER_PATTERNS) {
+        // Only use high/medium confidence patterns, skip low confidence ones
+        if (pattern.test(blockCode) && confidence !== 'low') {
+          analysis.isContainer = isContainer;
+          break;
+        }
       }
     }
     
