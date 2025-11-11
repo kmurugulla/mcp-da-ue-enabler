@@ -38,12 +38,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kmurugulla/mcp-aem-ue-enabler.git"
+    "url": "git+https://github.com/kmurugulla/mcp-da-ue-enabler.git"
   },
   "bugs": {
-    "url": "https://github.com/kmurugulla/mcp-aem-ue-enabler/issues"
+    "url": "https://github.com/kmurugulla/mcp-da-ue-enabler/issues"
   },
-  "homepage": "https://github.com/kmurugulla/mcp-aem-ue-enabler#readme"
+  "homepage": "https://github.com/kmurugulla/mcp-da-ue-enabler#readme"
 }
 
 
