@@ -36,7 +36,7 @@ For local development:
 
 ## GitHub Token Setup (Optional)
 
-Required only if you want to analyze blocks from remote GitHub repositories or private repos.
+Required only if agent starts in a non eds project folder and / or want to analyze blocks from remote GitHub repositories / branches or private repos.
 Note - If the agent interactions starts from EDS project , the tools will consider code from local project
 1. Go to: https://github.com/settings/tokens/new
 2. Set token name (e.g., "AEM UE Enabler - Read Only")
